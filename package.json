@@ -2,7 +2,7 @@
   "name": "server-side",
   "version": "1.0.0",
   "description": "Backend for Trespics",
-  "main": "src/app.js",
+  "main": "app.js",
   "scripts": {
     "start": "node ./app.js",
     "dev": "nodemon ./app.js",
