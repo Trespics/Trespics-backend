@@ -1,5 +1,6 @@
 const errorHandler = (err, req, res, next) => {
   console.error('--- ERROR START ---');
+  console.error(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   console.error('Message:', err.message);
   console.error('Status:', err.status);
   console.error('Code:', err.code);

@@ -2,14 +2,28 @@ const supabase = require('../config/supabase');
 
 const getAllProjects = async (req, res, next) => {
   try {
+    if (!supabase) {
+      const error = new Error('Supabase client is not initialized');
+      error.status = 500;
+      throw error;
+    }
+
     const { data, error } = await supabase
       .from('projects')
       .select('*')
       .order('created_at', { ascending: false });
     
-    if (error) throw error;
-    res.json(data);
+    if (error) {
+      console.error('[Backend] Supabase error fetching projects:', error);
+      const customError = new Error(error.message || 'Error fetching projects from Supabase');
+      customError.status = 500;
+      customError.code = error.code;
+      throw customError;
+    }
+
+    res.json(data || []);
   } catch (error) {
+    console.error('[Backend] Catch error in getAllProjects:', error);
     next(error);
   }
 };
@@ -17,14 +31,29 @@ const getAllProjects = async (req, res, next) => {
 const createProject = async (req, res, next) => {
   try {
     const { title, description, price, image_url, category, link } = req.body;
+    
+    if (!title || !description || !image_url || !category) {
+      const error = new Error('Missing required fields: title, description, image_url, or category');
+      error.status = 400;
+      throw error;
+    }
+
     const { data, error } = await supabase
       .from('projects')
       .insert([{ title, description, price, image_url, category, link }])
       .select();
     
-    if (error) throw error;
+    if (error) {
+      console.error('[Backend] Supabase error creating project:', error);
+      const customError = new Error(error.message || 'Error creating project in Supabase');
+      customError.status = 500;
+      customError.code = error.code;
+      throw customError;
+    }
+
     res.status(201).json(data[0]);
   } catch (error) {
+    console.error('[Backend] Catch error in createProject:', error);
     next(error);
   }
 };
