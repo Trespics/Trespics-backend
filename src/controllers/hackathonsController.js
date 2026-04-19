@@ -105,7 +105,15 @@ const registerForHackathon = async (req, res, next) => {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      // Check for unique constraint violation (Postgres code 23505)
+      if (error.code === '23505') {
+        return res.status(400).json({ 
+          message: 'This project or leader is already registered for this hackathon.' 
+        });
+      }
+      throw error;
+    }
     res.status(201).json(data);
   } catch (error) {
     next(error);

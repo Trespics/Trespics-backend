@@ -9,8 +9,20 @@ const createSubmission = async (req, res, next) => {
       project_title, 
       description, 
       github_link, 
-      video_link, 
-      answers 
+      video_link,
+      university,
+      is_team,
+      team_name,
+      members,
+      programming_languages,
+      problem_solved,
+      impact,
+      key_features,
+      challenges,
+      live_demo_url,
+      additional_links,
+      has_credentials,
+      credentials
     } = req.body;
     
     const { data, error } = await supabase
@@ -23,7 +35,19 @@ const createSubmission = async (req, res, next) => {
         description,
         github_link,
         video_link,
-        answers
+        university,
+        is_team,
+        team_name,
+        members,
+        programming_languages,
+        problem_solved,
+        impact,
+        key_features,
+        challenges,
+        live_demo_url,
+        additional_links,
+        has_credentials,
+        credentials
       }])
       .select()
       .single();
