@@ -66,8 +66,26 @@ const getHackathonSubmissions = async (req, res, next) => {
   }
 };
 
+const updateSubmissionFeedback = async (req, res, next) => {
+  try {
+    const { feedback } = req.body;
+    const { data, error } = await supabase
+      .from('submissions')
+      .update({ feedback })
+      .eq('id', req.params.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createSubmission,
   getSubmissionById,
-  getHackathonSubmissions
+  getHackathonSubmissions,
+  updateSubmissionFeedback
 };

@@ -11,6 +11,7 @@ const uploadRouter = require('./src/routes/upload');
 const hackathonsRouter = require('./src/routes/hackathons');
 const teamsRouter = require('./src/routes/teams');
 const submissionsRouter = require('./src/routes/submissions');
+const universitiesRouter = require('./src/routes/universities');
 const errorHandler = require('./src/middleware/errorHandler');
 
 const app = express();
@@ -30,6 +31,7 @@ app.use('/api/upload', uploadRouter);
 app.use('/api/hackathons', hackathonsRouter);
 app.use('/api/teams', teamsRouter);
 app.use('/api/submissions', submissionsRouter);
+app.use('/api/universities', universitiesRouter);
 
 // Health check
 app.get('/', (req, res) => {
