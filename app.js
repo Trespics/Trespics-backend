@@ -8,6 +8,9 @@ const testimonialsRouter = require('./src/routes/testimonials');
 const contactRouter = require('./src/routes/contact');
 const authRouter = require('./src/routes/auth');
 const uploadRouter = require('./src/routes/upload');
+const hackathonsRouter = require('./src/routes/hackathons');
+const teamsRouter = require('./src/routes/teams');
+const submissionsRouter = require('./src/routes/submissions');
 const errorHandler = require('./src/middleware/errorHandler');
 
 const app = express();
@@ -24,6 +27,9 @@ app.use('/api/testimonials', testimonialsRouter);
 app.use('/api/contact', contactRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/upload', uploadRouter);
+app.use('/api/hackathons', hackathonsRouter);
+app.use('/api/teams', teamsRouter);
+app.use('/api/submissions', submissionsRouter);
 
 // Health check
 app.get('/', (req, res) => {
