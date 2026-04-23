@@ -33,14 +33,14 @@ const createHackathon = async (req, res, next) => {
   try {
     const { 
       title, description, rules, start_date, deadline, status,
-      tagline, longDescription, objectives, schedule, prizes, judges, sponsors, techStack, prize_pool_desc
+      tagline, long_description, objectives, schedule, prizes, judges, sponsors, tech_stack, prize_pool_desc
     } = req.body;
     
     const { data, error } = await supabase
       .from('hackathons')
       .insert([{ 
         title, description, rules, start_date, deadline, status,
-        tagline, longDescription, objectives, schedule, prizes, judges, sponsors, techStack, prize_pool_desc
+        tagline, long_description, objectives, schedule, prizes, judges, sponsors, tech_stack, prize_pool_desc
       }])
       .select();
     
@@ -55,14 +55,14 @@ const updateHackathon = async (req, res, next) => {
   try {
     const { 
       title, description, rules, start_date, deadline, status,
-      tagline, longDescription, objectives, schedule, prizes, judges, sponsors, techStack, prize_pool_desc
+      tagline, long_description, objectives, schedule, prizes, judges, sponsors, tech_stack, prize_pool_desc
     } = req.body;
     
     const { data, error } = await supabase
       .from('hackathons')
       .update({ 
         title, description, rules, start_date, deadline, status,
-        tagline, longDescription, objectives, schedule, prizes, judges, sponsors, techStack, prize_pool_desc
+        tagline, long_description, objectives, schedule, prizes, judges, sponsors, tech_stack, prize_pool_desc
       })
       .eq('id', req.params.id)
       .select();
