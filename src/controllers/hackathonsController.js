@@ -4,11 +4,20 @@ const getAllHackathons = async (req, res, next) => {
   try {
     const { data, error } = await supabase
       .from('hackathons')
-      .select('*')
+      .select(`
+        *,       
+        participants_count:hackathon_registrations(count)
+      `)
       .order('start_date', { ascending: true });
     
     if (error) throw error;
-    res.json(data || []);
+
+    const formattedData = (data || []).map(h => ({
+      ...h,
+      participants_count: h.participants_count?.[0]?.count || 0
+    }));
+
+    res.json(formattedData);
   } catch (error) {
     next(error);
   }
@@ -23,7 +32,16 @@ const getHackathonById = async (req, res, next) => {
       .single();
     
     if (error) throw error;
-    res.json(data);
+
+    // Fetch participant count
+    const { count, error: countError } = await supabase
+      .from('hackathon_registrations')
+      .select('*', { count: 'exact', head: true })
+      .eq('hackathon_id', req.params.id);
+
+    if (countError) console.error('Error fetching participant count:', countError);
+    
+    res.json({ ...data, participants_count: count || 0 });
   } catch (error) {
     next(error);
   }
@@ -33,15 +51,19 @@ const createHackathon = async (req, res, next) => {
   try {
     const { 
       title, description, rules, start_date, deadline, status,
-      tagline, long_description, objectives, schedule, prizes, judges, sponsors, tech_stack, prize_pool_desc
+      tagline, long_description, objectives, schedule, prizes, judges, sponsors, tech_stack, prize_pool_desc, video_url
     } = req.body;
+
+
     
     const { data, error } = await supabase
       .from('hackathons')
       .insert([{ 
         title, description, rules, start_date, deadline, status,
-        tagline, long_description, objectives, schedule, prizes, judges, sponsors, tech_stack, prize_pool_desc
+        tagline, long_description, objectives, schedule, prizes, judges, sponsors, tech_stack, prize_pool_desc, video_url
       }])
+
+
       .select();
     
     if (error) throw error;
@@ -55,15 +77,19 @@ const updateHackathon = async (req, res, next) => {
   try {
     const { 
       title, description, rules, start_date, deadline, status,
-      tagline, long_description, objectives, schedule, prizes, judges, sponsors, tech_stack, prize_pool_desc
+      tagline, long_description, objectives, schedule, prizes, judges, sponsors, tech_stack, prize_pool_desc, video_url
     } = req.body;
+
+
     
     const { data, error } = await supabase
       .from('hackathons')
       .update({ 
         title, description, rules, start_date, deadline, status,
-        tagline, long_description, objectives, schedule, prizes, judges, sponsors, tech_stack, prize_pool_desc
+        tagline, long_description, objectives, schedule, prizes, judges, sponsors, tech_stack, prize_pool_desc, video_url
       })
+
+
       .eq('id', req.params.id)
       .select();
     
@@ -91,14 +117,27 @@ const deleteHackathon = async (req, res, next) => {
 const registerForHackathon = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { leader_name, university_name, project_name, user_id } = req.body;
+    const { leader_name, email, university_name, project_name, user_id } = req.body;
 
+    // 1. Upsert into participants table
+    const { error: participantError } = await supabase
+      .from('participants')
+      .upsert({ 
+        full_name: leader_name, 
+        email, 
+        university: university_name 
+      }, { onConflict: 'email' });
+
+    if (participantError) throw participantError;
+
+    // 2. Insert into hackathon_registrations
     const { data, error } = await supabase
       .from('hackathon_registrations')
       .insert([{
         hackathon_id: id,
         user_id: user_id || null,
         leader_name,
+        email,
         university_name,
         project_name
       }])
@@ -163,6 +202,48 @@ const getHackathonRegistrations = async (req, res, next) => {
   }
 };
 
+const getHackathonStatsOverview = async (req, res, next) => {
+  try {
+    const [
+      { count: totalChallenges, error: err1 },
+      { count: ongoingChallenges, error: err2 },
+      { count: upcomingChallenges, error: err3 },
+      { count: totalParticipants, error: err4 }
+    ] = await Promise.all([
+      supabase.from('hackathons').select('*', { count: 'exact', head: true }),
+      supabase.from('hackathons').select('*', { count: 'exact', head: true }).eq('status', 'Ongoing'),
+      supabase.from('hackathons').select('*', { count: 'exact', head: true }).eq('status', 'Upcoming'),
+      supabase.from('hackathon_registrations').select('*', { count: 'exact', head: true })
+    ]);
+
+    if (err1 || err2 || err3 || err4) {
+      console.error('[Backend] Stats fetch error:', { err1, err2, err3, err4 });
+    }
+
+    res.json({
+      total: totalChallenges || 0,
+      ongoing: ongoingChallenges || 0,
+      upcoming: upcomingChallenges || 0,
+      participants: totalParticipants || 0
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getParticipantStats = async (req, res, next) => {
+  try {
+    const { count, error } = await supabase
+      .from('hackathon_registrations')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) throw error;
+    res.json({ totalParticipants: count || 0 });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getAllHackathons,
   getHackathonById,
@@ -171,5 +252,7 @@ module.exports = {
   deleteHackathon,
   registerForHackathon,
   checkRegistrationStatus,
-  getHackathonRegistrations
+  getHackathonRegistrations,
+  getParticipantStats,
+  getHackathonStatsOverview
 };
