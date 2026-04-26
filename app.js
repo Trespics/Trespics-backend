@@ -13,6 +13,7 @@ const teamsRouter = require('./src/routes/teams');
 const submissionsRouter = require('./src/routes/submissions');
 const universitiesRouter = require('./src/routes/universities');
 const blogsRouter = require('./src/routes/blogs');
+const servicesRouter = require('./src/routes/services');
 const errorHandler = require('./src/middleware/errorHandler');
 
 const app = express();
@@ -34,6 +35,7 @@ app.use('/api/teams', teamsRouter);
 app.use('/api/submissions', submissionsRouter);
 app.use('/api/universities', universitiesRouter);
 app.use('/api/blogs', blogsRouter);
+app.use('/api/services', servicesRouter);
 
 // Health check
 app.get('/', (req, res) => {
