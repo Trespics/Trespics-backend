@@ -54,18 +54,27 @@ const createHackathon = async (req, res, next) => {
       tagline, long_description, objectives, schedule, prizes, judges, sponsors, tech_stack, prize_pool_desc, video_url
     } = req.body;
 
+    const payload = { 
+      title, description, rules, start_date, deadline, status,
+      tagline, long_description, objectives, schedule, prizes, judges, sponsors, tech_stack, prize_pool_desc, video_url
+    };
 
-    
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('hackathons')
-      .insert([{ 
-        title, description, rules, start_date, deadline, status,
-        tagline, long_description, objectives, schedule, prizes, judges, sponsors, tech_stack, prize_pool_desc, video_url
-      }])
-
-
+      .insert([payload])
       .select();
     
+    if (error && error.message && error.message.includes('video_url')) {
+      console.warn('[Backend] video_url column not supported by database schema. Retrying without video_url.');
+      delete payload.video_url;
+      const retry = await supabase
+        .from('hackathons')
+        .insert([payload])
+        .select();
+      data = retry.data;
+      error = retry.error;
+    }
+
     if (error) throw error;
     res.status(201).json(data[0]);
   } catch (error) {
@@ -80,19 +89,29 @@ const updateHackathon = async (req, res, next) => {
       tagline, long_description, objectives, schedule, prizes, judges, sponsors, tech_stack, prize_pool_desc, video_url
     } = req.body;
 
+    const payload = { 
+      title, description, rules, start_date, deadline, status,
+      tagline, long_description, objectives, schedule, prizes, judges, sponsors, tech_stack, prize_pool_desc, video_url
+    };
 
-    
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('hackathons')
-      .update({ 
-        title, description, rules, start_date, deadline, status,
-        tagline, long_description, objectives, schedule, prizes, judges, sponsors, tech_stack, prize_pool_desc, video_url
-      })
-
-
+      .update(payload)
       .eq('id', req.params.id)
       .select();
     
+    if (error && error.message && error.message.includes('video_url')) {
+      console.warn('[Backend] video_url column not supported by database schema. Retrying without video_url.');
+      delete payload.video_url;
+      const retry = await supabase
+        .from('hackathons')
+        .update(payload)
+        .eq('id', req.params.id)
+        .select();
+      data = retry.data;
+      error = retry.error;
+    }
+
     if (error) throw error;
     res.json(data[0]);
   } catch (error) {

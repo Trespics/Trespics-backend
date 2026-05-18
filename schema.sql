@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS hackathons (
   start_date TIMESTAMPTZ NOT NULL,
   deadline TIMESTAMPTZ NOT NULL,
   status TEXT DEFAULT 'Upcoming', -- Upcoming, Ongoing, Closed
+  video_url TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
